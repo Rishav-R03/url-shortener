@@ -1,0 +1,75 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: postgres_db
+    environment:
+      POSTGRES_DB: url_shortener_db
+      POSTGRES_USER: user  # Ensure this is 'user'
+      POSTGRES_PASSWORD: password # Ensure this is 'password'
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d url_shortener_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  db_test: # This is the service for testing
+    image: postgres:16-alpine
+    container_name: postgres_test_db
+    environment:
+      POSTGRES_DB: test_url_shortener_db
+      POSTGRES_USER: user # Ensure this is 'user'
+      POSTGRES_PASSWORD: password # Ensure this is 'password'
+    ports:
+      - "5433:5432" # Map to a different port for the test DB
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d test_url_shortener_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis_cache
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    container_name: url_shortener_app
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://user:password@db:5432/url_shortener_db
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+      SHORT_CODE_LENGTH: 8
+      RATE_LIMIT_PER_MINUTE: 10
+    # volumes:
+    #   - ./app:/app/app # Uncomment for live reloading during development
+
+volumes:
+  postgres_data:
+  redis_data:
+  postgres_test_data: # This volume must be defined here
