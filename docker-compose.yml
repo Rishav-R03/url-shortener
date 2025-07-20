@@ -7,8 +7,8 @@ services:
     container_name: postgres_db
     environment:
       POSTGRES_DB: url_shortener_db
-      POSTGRES_USER: user  # Ensure this is 'user'
-      POSTGRES_PASSWORD: password # Ensure this is 'password'
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password 
     ports:
       - "5432:5432"
     volumes:
@@ -19,15 +19,15 @@ services:
       timeout: 5s
       retries: 5
 
-  db_test: # This is the service for testing
+  db_test: 
     image: postgres:16-alpine
     container_name: postgres_test_db
     environment:
       POSTGRES_DB: test_url_shortener_db
-      POSTGRES_USER: user # Ensure this is 'user'
-      POSTGRES_PASSWORD: password # Ensure this is 'password'
+      POSTGRES_USER: user 
+      POSTGRES_PASSWORD: password
     ports:
-      - "5433:5432" # Map to a different port for the test DB
+      - "5433:5432" 
     volumes:
       - postgres_test_data:/var/lib/postgresql/data
     healthcheck:
@@ -66,10 +66,8 @@ services:
       REDIS_DB: 0
       SHORT_CODE_LENGTH: 8
       RATE_LIMIT_PER_MINUTE: 10
-    # volumes:
-    #   - ./app:/app/app # Uncomment for live reloading during development
 
 volumes:
   postgres_data:
   redis_data:
-  postgres_test_data: # This volume must be defined here
+  postgres_test_data: 
