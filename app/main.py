@@ -3,11 +3,11 @@ from fastapi import FastAPI, Depends, HTTPException, Request, status
 from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from redis.asyncio import Redis
-from app.database import init_db, get_db
-from app.redis_client import get_redis_client, close_redis_connection
-from app.schemas import URLCreate, URLResponse, URLAnalytics
-from app import crud
-from app.config import settings
+from database import init_db, get_db
+from redis_client import get_redis_client, close_redis_connection
+from schemas import URLCreate, URLResponse, URLAnalytics
+import crud
+from config import settings
 from collections import defaultdict
 import time
 
