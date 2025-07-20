@@ -82,111 +82,13 @@ Pytest-Asyncio: Pytest plugin for testing asyncio code.
 HTTPX: A fully featured HTTP client for Python, used for making asynchronous requests in tests.
 
 4. Project Structure
-url_shortener/
-├── app/
-│   ├── __init__.py
-│   ├── main.py             # FastAPI application entry point, API routes, event handlers
-│   ├── config.py           # Application settings and environment variable loading
-│   ├── database.py         # SQLAlchemy models, database engine, session management, DB init/retry logic
-│   ├── redis_client.py     # Redis client initialization and connection management
-│   ├── schemas.py          # Pydantic models for request/response validation and data serialization
-│   ├── crud.py             # CRUD (Create, Read, Update, Delete) operations for database and Redis
-│   └── utils.py            # Utility functions (e.g., short code generation)
-├── tests/
-│   ├── __init__.py
-│   ├── conftest.py         # Pytest fixtures for database, Redis, and FastAPI test client setup
-│   └── test_main.py        # Unit/integration tests for API endpoints
-├── Dockerfile              # Dockerfile for building the FastAPI application image
-├── docker-compose.yml      # Defines multi-container Docker application (FastAPI, PostgreSQL, Redis)
-├── requirements.txt        # Python dependencies
-└── .env                    # Environment variables (for local development, overridden by docker-compose)
+<img width="898" height="462" alt="Screenshot 2025-07-20 121026" src="https://github.com/user-attachments/assets/c30b2e29-6dd5-4d9e-a7b2-e7ff7559866b" />
+
 
 5. Database Schema
-Table: urls
-Stores the mapping between short codes and original long URLs.
+<img width="957" height="597" alt="Screenshot 2025-07-20 120938" src="https://github.com/user-attachments/assets/de68c5a1-3025-47c2-b276-8d98d9079d5b" />
+<img width="344" height="647" alt="Screenshot 2025-07-20 121213" src="https://github.com/user-attachments/assets/2bdfb728-ac33-4df1-ac9a-856a47deea1a" />
 
-Column Name
-
-Data Type
-
-Constraints
-
-Description
-
-id
-
-INTEGER
-
-PRIMARY KEY, INDEX, AUTOINCREMENT
-
-Unique identifier for the URL entry.
-
-short_code
-
-VARCHAR
-
-UNIQUE, INDEX, NOT NULL
-
-The generated short code (e.g., abc123de).
-
-long_url
-
-VARCHAR
-
-NOT NULL
-
-The original, full URL.
-
-created_at
-
-TIMESTAMP WITHOUT TIME ZONE
-
-DEFAULT CURRENT_TIMESTAMP
-
-Timestamp of when the short URL was created.
-
-Table: click_events
-Records each time a short URL is accessed (clicked).
-
-Column Name
-
-Data Type
-
-Constraints
-
-Description
-
-id
-
-INTEGER
-
-PRIMARY KEY, INDEX, AUTOINCREMENT
-
-Unique identifier for the click event.
-
-short_code_id
-
-INTEGER
-
-NOT NULL, FOREIGN KEY (urls.id)
-
-References the id of the associated short URL in the urls table.
-
-timestamp
-
-TIMESTAMP WITHOUT TIME ZONE
-
-DEFAULT CURRENT_TIMESTAMP
-
-Timestamp of when the click occurred.
-
-ip_address
-
-VARCHAR
-
-NULLABLE
-
-IP address of the client who clicked the URL (for basic analytics).
 
 6. Getting Started
 Prerequisites
@@ -207,7 +109,7 @@ This is the easiest way to get the entire application stack (FastAPI, PostgreSQL
 
 Clone the repository:
 
-git clone <your-repo-url>
+git clone [Github](https://github.com/Rishav-R03/url-shortener/)
 cd url_shortener
 
 Build and start the services:
@@ -265,7 +167,7 @@ Ensure REDIS_HOST is set to localhost (if Redis is running directly on your mach
 
 # app/config.py excerpt
 DATABASE_URL: str = "postgresql+asyncpg://user:password@localhost:5432/url_shortener_db"
-REDIS_HOST: str = "localhost" # Or your VM's IP like "172.25.41.139"
+REDIS_HOST: str = "localhost" # Or your VM's IP like "172.xx.xx"
 REDIS_PORT: int = 6379
 
 Run the FastAPI application:
