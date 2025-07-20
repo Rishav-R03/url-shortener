@@ -1,6 +1,6 @@
 # app/redis_client.py
 import redis.asyncio as redis
-from app.config import settings
+from config import settings
 
 # Initialize an asynchronous Redis client
 redis_client = redis.Redis(
