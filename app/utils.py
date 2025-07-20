@@ -1,6 +1,6 @@
 # app/utils.py
 import shortuuid
-from app.config import settings
+from config import settings
 
 def generate_short_code() -> str:
     """
