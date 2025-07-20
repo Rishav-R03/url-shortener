@@ -1,11 +1,11 @@
 # app/crud.py
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
-from app.database import URL, ClickEvent
-from app.schemas import URLCreate
-from app.utils import generate_short_code
+from database import URL, ClickEvent
+from schemas import URLCreate
+from utils import generate_short_code
 from redis.asyncio import Redis
-from app.config import settings
+from config import settings
 
 async def create_short_url(db: AsyncSession, url: URLCreate, redis_client: Redis) -> URL:
     """
