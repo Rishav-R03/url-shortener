@@ -11,7 +11,7 @@ from app.config import settings
 from app.main import request_timestamps # Import the rate limiting dictionary
 
 # Use a separate test database URL
-TEST_DATABASE_URL = "postgresql+asyncpg://user:password@localhost:5433/test_url_shortener_db"
+TEST_DATABASE_URL = "postgresql+asyncpg://postgres:root123@localhost:5433/test_url_shortener_db"
 
 # Create a test engine
 test_engine = create_async_engine(TEST_DATABASE_URL, echo=False)
