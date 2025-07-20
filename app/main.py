@@ -6,8 +6,8 @@ from redis.asyncio import Redis
 from database import init_db, get_db
 from redis_client import get_redis_client, close_redis_connection
 from schemas import URLCreate, URLResponse, URLAnalytics
-import crud
 from config import settings
+import crud 
 from collections import defaultdict
 import time
 
