@@ -29,9 +29,6 @@ async def test_create_short_url(client: AsyncClient):
     assert "created_at" in data
     assert "id" in data
 
-    # Verify it's in the database (optional, but good for integration test)
-    # You could add a direct DB query here using db_session fixture if needed
-    # For now, we'll rely on redirection test to confirm persistence.
 
 @pytest.mark.asyncio
 async def test_create_short_url_invalid_input(client: AsyncClient):
@@ -124,12 +121,3 @@ async def test_rate_limiting(client: AsyncClient):
     response = await client.post("/shorten", json={"long_url": f"{long_url_base}overlimit"})
     assert response.status_code == 429
     assert "Rate limit exceeded" in response.json()["detail"]
-
-    # Wait for more than 60 seconds and try again
-    # In a real test, you'd use time.sleep(61)
-    # For pytest, we can mock time or rely on the fixture clearing for isolation.
-    # Since conftest.py clears request_timestamps for each test,
-    # a new call to client.post will essentially reset the rate limit for this test.
-    # To properly test waiting, you'd need to mock time or run this in a separate test
-    # with actual sleep, which is slow for unit tests.
-    # For this test, we've verified the 429 response.
