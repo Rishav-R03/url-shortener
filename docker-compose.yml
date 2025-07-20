@@ -1,5 +1,5 @@
 # docker-compose.yml
-version: '3.8'
+version: "3.8"
 
 services:
   db:
@@ -8,7 +8,7 @@ services:
     environment:
       POSTGRES_DB: url_shortener_db
       POSTGRES_USER: user
-      POSTGRES_PASSWORD: password 
+      POSTGRES_PASSWORD: password
     ports:
       - "5432:5432"
     volumes:
@@ -19,15 +19,15 @@ services:
       timeout: 5s
       retries: 5
 
-  db_test: 
+  db_test:
     image: postgres:16-alpine
     container_name: postgres_test_db
     environment:
       POSTGRES_DB: test_url_shortener_db
-      POSTGRES_USER: user 
+      POSTGRES_USER: user
       POSTGRES_PASSWORD: password
     ports:
-      - "5433:5432" 
+      - "5433:5432"
     volumes:
       - postgres_test_data:/var/lib/postgresql/data
     healthcheck:
@@ -70,4 +70,4 @@ services:
 volumes:
   postgres_data:
   redis_data:
-  postgres_test_data: 
+  postgres_test_data:
