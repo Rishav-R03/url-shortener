@@ -1,82 +1,372 @@
 URL Shortener with Analytics and Caching
-This document provides a comprehensive overview of the URL Shortener project, detailing its objectives, architectural design, database schema, and a retrospective on the significant challenges encountered during development and their resolutions.
+Table of Contents
+Introduction
 
-1. Project Objective
-The primary objective of this project is to develop a robust and efficient URL shortening service. This service aims to:
+Features
 
-Shorten Long URLs: Convert lengthy web addresses into concise, easy-to-share short codes.
+Technologies Used
 
-Facilitate Redirection: Efficiently redirect users from the short URL to the original long URL.
+Project Structure
 
-Provide Basic Analytics: Track the number of clicks for each short URL.
+Database Schema
 
-Implement Caching: Utilize Redis to cache URL mappings for rapid redirection, reducing database load.
+Getting Started
 
-Ensure Scalability & Reliability: Leverage modern asynchronous frameworks (FastAPI) and containerization (Docker) for a scalable and maintainable architecture.
+Prerequisites
 
-Prevent Abuse: Incorporate basic rate limiting on URL creation.
+Running with Docker Compose (Recommended)
 
-2. Project File Structure
-The project follows a modular and organized structure, promoting separation of concerns and maintainability.
+Running Locally (Without Docker)
 
-<img width="898" height="462" alt="image" src="https://github.com/user-attachments/assets/d6e9ec48-b966-4458-b8f5-aebc6a8af65b" />
+Testing
 
+API Endpoints
 
-3. Database Design Structure (PostgreSQL)
-The project utilizes PostgreSQL to store URL mappings and click event data. The database schema is designed for simplicity and efficiency.
-<img width="957" height="597" alt="image" src="https://github.com/user-attachments/assets/a209e56c-3730-4dca-a1cc-d67965f46552" />
+Future Enhancements
 
-<img width="344" height="647" alt="image" src="https://github.com/user-attachments/assets/fc9682d7-5fa7-4f41-a6db-fd72a0be91dc" />
+Challenges & Learnings
 
-4. Challenges Faced and Solutions
-Developing this project involved several common but challenging issues, primarily related to Docker containerization, database connectivity, and asynchronous testing. Each challenge provided valuable learning opportunities.
+Contributing
 
-Challenge 1: collected 0 items when running Pytest
-Problem: Pytest was reporting "collected 0 items" even though test files were present.
-Diagnosis: The rootdir shown by pytest was C:\url_shortner\app, indicating it was looking for tests in the wrong directory. Test files were correctly placed in C:\url_shortner\tests.
-Solution: The user was running pytest from the wrong directory. The fix was to navigate to the project's root directory (C:\url_shortner) before executing pytest.
+License
 
-Challenge 2: asyncpg.exceptions.InvalidPasswordError: password authentication failed (Docker)
-Problem: The FastAPI application failed to connect to the PostgreSQL database within Docker with a password authentication error, despite POSTGRES_USER and POSTGRES_PASSWORD being correctly set in docker-compose.yml.
-Diagnosis: This typically occurs when the PostgreSQL data volume (postgres_data) was initialized in a previous run with different credentials (e.g., the default postgres user). Changing environment variables in docker-compose.yml doesn't alter an already initialized database's users.
-Solution: A complete teardown of Docker containers and their associated volumes was required:
-docker-compose down -v
+1. Introduction
+This project implements a robust and efficient URL shortening service, designed to convert long, unwieldy URLs into short, shareable codes. Beyond basic shortening and redirection, it incorporates essential features like click analytics, high-speed caching with Redis, and basic rate limiting to ensure reliability and prevent abuse. The entire application is built using modern asynchronous Python frameworks and is fully containerized with Docker for easy deployment and scalability.
+
+2. Features
+URL Shortening: Convert any long URL into a unique, concise short code.
+
+Fast Redirection: Redirect users from a short URL to its original long URL with minimal latency.
+
+Basic Click Analytics: Track the total number of times each short URL has been accessed.
+
+Redis Caching: Store frequently accessed URL mappings in Redis to significantly speed up redirection by reducing direct database hits.
+
+Rate Limiting: Protect the URL creation endpoint from excessive requests and potential abuse.
+
+Containerized Deployment: Utilize Docker and Docker Compose for a consistent and isolated development and production environment.
+
+Automated Testing: Comprehensive test suite using Pytest to ensure reliability and correctness of the API.
+
+3. Technologies Used
+Backend:
+
+FastAPI: A modern, fast (high-performance) web framework for building APIs with Python 3.8+ based on standard Python type hints.
+
+SQLAlchemy: The Python SQL Toolkit and Object Relational Mapper (ORM) for efficient database interactions.
+
+AsyncPG: A fast PostgreSQL database client library for Python/asyncio.
+
+Redis: An open-source, in-memory data structure store, used as a database, cache, and message broker.
+
+Pydantic: Data validation and settings management using Python type hints.
+
+Shortuuid: A library for generating concise, unambiguous, and URL-safe UUIDs.
+
+Database:
+
+PostgreSQL: A powerful, open-source object-relational database system.
+
+Containerization:
+
+Docker: Platform for developing, shipping, and running applications in containers.
+
+Docker Compose: Tool for defining and running multi-container Docker applications.
+
+Testing:
+
+Pytest: A mature full-featured Python testing framework.
+
+Pytest-Asyncio: Pytest plugin for testing asyncio code.
+
+HTTPX: A fully featured HTTP client for Python, used for making asynchronous requests in tests.
+
+4. Project Structure
+url_shortener/
+├── app/
+│   ├── __init__.py
+│   ├── main.py             # FastAPI application entry point, API routes, event handlers
+│   ├── config.py           # Application settings and environment variable loading
+│   ├── database.py         # SQLAlchemy models, database engine, session management, DB init/retry logic
+│   ├── redis_client.py     # Redis client initialization and connection management
+│   ├── schemas.py          # Pydantic models for request/response validation and data serialization
+│   ├── crud.py             # CRUD (Create, Read, Update, Delete) operations for database and Redis
+│   └── utils.py            # Utility functions (e.g., short code generation)
+├── tests/
+│   ├── __init__.py
+│   ├── conftest.py         # Pytest fixtures for database, Redis, and FastAPI test client setup
+│   └── test_main.py        # Unit/integration tests for API endpoints
+├── Dockerfile              # Dockerfile for building the FastAPI application image
+├── docker-compose.yml      # Defines multi-container Docker application (FastAPI, PostgreSQL, Redis)
+├── requirements.txt        # Python dependencies
+└── .env                    # Environment variables (for local development, overridden by docker-compose)
+
+5. Database Schema
+Table: urls
+Stores the mapping between short codes and original long URLs.
+
+Column Name
+
+Data Type
+
+Constraints
+
+Description
+
+id
+
+INTEGER
+
+PRIMARY KEY, INDEX, AUTOINCREMENT
+
+Unique identifier for the URL entry.
+
+short_code
+
+VARCHAR
+
+UNIQUE, INDEX, NOT NULL
+
+The generated short code (e.g., abc123de).
+
+long_url
+
+VARCHAR
+
+NOT NULL
+
+The original, full URL.
+
+created_at
+
+TIMESTAMP WITHOUT TIME ZONE
+
+DEFAULT CURRENT_TIMESTAMP
+
+Timestamp of when the short URL was created.
+
+Table: click_events
+Records each time a short URL is accessed (clicked).
+
+Column Name
+
+Data Type
+
+Constraints
+
+Description
+
+id
+
+INTEGER
+
+PRIMARY KEY, INDEX, AUTOINCREMENT
+
+Unique identifier for the click event.
+
+short_code_id
+
+INTEGER
+
+NOT NULL, FOREIGN KEY (urls.id)
+
+References the id of the associated short URL in the urls table.
+
+timestamp
+
+TIMESTAMP WITHOUT TIME ZONE
+
+DEFAULT CURRENT_TIMESTAMP
+
+Timestamp of when the click occurred.
+
+ip_address
+
+VARCHAR
+
+NULLABLE
+
+IP address of the client who clicked the URL (for basic analytics).
+
+6. Getting Started
+Prerequisites
+Before you begin, ensure you have the following installed:
+
+Git
+
+Docker Desktop (includes Docker Engine and Docker Compose) - Recommended for seamless setup.
+
+Python 3.11+ (if running locally without Docker)
+
+PostgreSQL (if running locally without Docker)
+
+Redis (if running locally without Docker)
+
+Running with Docker Compose (Recommended)
+This is the easiest way to get the entire application stack (FastAPI, PostgreSQL, Redis) up and running.
+
+Clone the repository:
+
+git clone <your-repo-url>
+cd url_shortener
+
+Build and start the services:
+
 docker-compose up --build -d
-The -v flag is critical as it removes the persistent data volumes, forcing PostgreSQL to re-initialize with the correct credentials on the next startup. This was applied for both the main db and test db_test services when they encountered this error.
 
-Challenge 3: Application startup failed. Exiting. (No Retry Messages)
-Problem: The FastAPI application container was failing to start, but the logs didn't show the expected database connection retry messages, indicating the new retry logic wasn't active.
-Diagnosis: Docker was using an old image of the app service. Code changes within the application's Python files are not automatically reflected in a running Docker container or its existing image.
-Solution: The Docker image for the app service needed to be rebuilt.
-docker-compose up --build -d
-The --build flag forces Docker to rebuild the image from the Dockerfile, incorporating the latest app/database.py with the retry logic.
+--build: Builds the app Docker image.
 
-Challenge 4: socket.gaierror: [Errno 11001] getaddrinfo failed (Redis Timeout in Docker)
-Problem: The FastAPI application (within Docker) failed to connect to the Redis container, showing a DNS resolution failure or network issue.
-Diagnosis: This indicated that the app container was trying to connect to an incorrect Redis host (e.g., an external IP address) instead of the redis service name within the Docker network. This usually happens if REDIS_HOST was misconfigured in .env or docker-compose.yml.
-Solution: Ensured REDIS_HOST: redis was correctly set in the environment section of the app service in docker-compose.yml. A clean docker-compose down -v followed by docker-compose up --build -d was performed to ensure the correct configuration was applied and network issues were cleared.
+-d: Runs the containers in detached mode (in the background).
 
-Challenge 5: The term 'redis-cli' is not recognized (Local Redis Setup on Windows)
-Problem: When trying to test Redis locally on Windows, redis-cli and apt commands were not found.
-Diagnosis: The user was attempting to run Linux-specific commands (sudo apt, redis-cli) in a Windows PowerShell terminal.
-Solution: Guided the user to open the Ubuntu terminal (installed via WSL) and execute the Linux commands within that environment to install and manage Redis.
+Verify services are running:
 
-Challenge 6: ConnectionRefusedError: [Errno 10061] Connect call failed (Local FastAPI to Redis in VirtualBox VM)
-Problem: The FastAPI application (running directly on Windows) could find the VirtualBox VM's IP address but was refused connection by Redis.
-Diagnosis: This indicated that Redis inside the VM was either not listening on the VM's network interface (only on 127.0.0.1 by default) or the VM's firewall was blocking the connection.
-Solution:
-Modified Redis configuration (/etc/redis/redis.conf) inside the VM: Changed bind 127.0.0.1 ::1 to bind 0.0.0.0 (or the specific VM IP) and set protected-mode no (for development convenience).
-Restarted Redis service in the VM.
-Verified VM firewall (UFW): Ensured sudo ufw allow 6379/tcp was active.
-Updated app/config.py (REDIS_HOST) to use the VM's actual IP address (172.25.41.139).
+docker-compose ps
 
-Challenge 7: "Click events db is empty" (Data not visible in PgAdmin)
-Problem: Logs showed successful INSERT and COMMIT for click_events, but PgAdmin still showed the table as empty.
-Diagnosis: The issue was not with the application or database, but with PgAdmin's display. It often caches table data or requires explicit refresh.
-Solution: Provided precise instructions to:
-Ensure connection to the correct database (url_shortener_db, port 5432).
-Right-click on the click_events table in PgAdmin and select "Refresh".
-Then, right-click again and select "View/Edit Data" -> "All Rows" to force a fresh query and display.
+You should see db, redis, and app containers in an Up (healthy) state.
 
-Conclusion
-This URL Shortener project now stands as a fully functional backend application, capable of shortening URLs, redirecting users, and tracking basic analytics. The journey through various debugging scenarios, particularly around Docker networking, PostgreSQL authentication, Redis connectivity, and Python asynchronous patterns, has significantly reinforced the understanding of building robust, containerized microservices. The project is now well-positioned for further enhancements, such as a dedicated frontend UI, advanced analytics, and user management features.
+Access the API documentation:
+Open your web browser and navigate to:
+
+Swagger UI: http://localhost:8000/docs
+
+ReDoc: http://localhost:8000/redoc
+
+Running Locally (Without Docker)
+If you prefer to run the FastAPI application directly on your host machine, you need to have PostgreSQL and Redis installed and running locally or in a VM.
+
+Install PostgreSQL and Redis locally:
+
+PostgreSQL: Install from PostgreSQL Downloads. Create a database named url_shortener_db and a user user with password password.
+
+CREATE DATABASE url_shortener_db;
+CREATE USER "user" WITH PASSWORD 'password';
+GRANT ALL PRIVILEGES ON DATABASE url_shortener_db TO "user";
+
+Redis:
+
+Linux/macOS: Install via package manager (e.g., sudo apt install redis-server on Ubuntu, brew install redis on macOS). Start the service.
+
+Windows: The most reliable way is via WSL (Windows Subsystem for Linux). Install Ubuntu in WSL, then install and start redis-server within the Ubuntu terminal.
+
+Create and activate a Python virtual environment:
+
+python -m venv venv
+# Windows
+.\venv\Scripts\activate
+# macOS/Linux
+source venv/bin/activate
+
+Install Python dependencies:
+
+pip install -r requirements.txt
+
+Update app/config.py for local connections:
+Ensure REDIS_HOST is set to localhost (if Redis is running directly on your machine or via WSL port forwarding) or the specific IP of your VM if Redis is in a VM. DATABASE_URL should also point to localhost.
+
+# app/config.py excerpt
+DATABASE_URL: str = "postgresql+asyncpg://user:password@localhost:5432/url_shortener_db"
+REDIS_HOST: str = "localhost" # Or your VM's IP like "172.25.41.139"
+REDIS_PORT: int = 6379
+
+Run the FastAPI application:
+
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+Access Swagger UI: http://localhost:8000/docs
+
+7. Testing
+The project includes a comprehensive test suite using pytest to ensure the reliability of the API endpoints.
+
+Ensure test database is running:
+If using Docker Compose, the db_test service will be started automatically.
+If running tests locally, ensure you have a separate PostgreSQL instance for testing (e.g., on port 5433) with a database named test_url_shortener_db and the same user/password credentials.
+
+Install test dependencies:
+Ensure pytest, pytest-asyncio, and httpx are installed (included in requirements.txt).
+
+Run tests from the project root directory:
+
+pytest
+
+8. API Endpoints
+POST /shorten
+
+Description: Creates a new short URL for a given long URL.
+
+Request Body:
+
+{
+  "long_url": "https://www.example.com/very/long/url"
+}
+
+Response (201 Created):
+
+{
+  "short_code": "abc123de",
+  "long_url": "https://www.example.com/very/long/url",
+  "created_at": "2023-10-27T10:00:00.000Z",
+  "id": 1
+}
+
+GET /{short_code}
+
+Description: Redirects to the original long URL and records a click event.
+
+Path Parameter: short_code (e.g., abc123de)
+
+Response (307 Temporary Redirect): Redirects the client to the long_url.
+
+GET /analytics/{short_code}
+
+Description: Retrieves analytics for a specific short URL, including total clicks.
+
+Path Parameter: short_code (e.g., abc123de)
+
+Response (200 OK):
+
+{
+  "short_code": "abc123de",
+  "long_url": "https://www.example.com/very/long/url",
+  "created_at": "2023-10-27T10:00:00.000Z",
+  "total_clicks": 5
+}
+
+9. Future Enhancements
+This project provides a robust foundation. Here are some ideas for future development:
+
+User Authentication & Management: Implement user accounts to allow users to manage their own short URLs.
+
+Custom Short Codes: Allow users to define their preferred short codes if available.
+
+Advanced Analytics: Track referrer, user agent (browser/OS/device), and geographical location of clicks.
+
+URL Expiration: Enable setting an expiration date/time for short URLs.
+
+QR Code Generation: Provide an endpoint to generate QR codes for short URLs.
+
+Custom Domains: Support using custom domains for shortened links (e.g., yourbrand.com/abc).
+
+Asynchronous Click Aggregation: Use a background task (e.g., Celery) to periodically move click counts from Redis to PostgreSQL for long-term storage, reducing immediate DB writes.
+
+Improved Rate Limiting: Implement more sophisticated, distributed rate limiting using Redis.
+
+Container Health Checks: Add health checks for the app service in docker-compose.yml.
+
+10. Challenges & Learnings
+Throughout this project, several common but significant challenges were encountered, providing valuable insights into building robust applications:
+
+Docker Volume Management: Understanding how Docker volumes persist data and how to clear them (docker-compose down -v) was crucial for resolving database authentication and configuration issues.
+
+Asynchronous Database Connectivity: Debugging asyncpg and SQLAlchemy errors related to connection states and event loop management required careful handling of asynchronous contexts and retries.
+
+Inter-Container Networking: Resolving getaddrinfo failed and ConnectionRefusedError highlighted the importance of correct service naming in docker-compose.yml and proper network configuration for local development (e.g., Host-Only Adapter IPs, Port Forwarding, VM firewalls).
+
+Pytest Fixture Scoping: Learning to correctly scope pytest-asyncio fixtures (session vs. function) was essential for ensuring isolated and reliable tests.
+
+Debugging Strategies: The iterative process of checking Docker logs (docker-compose logs --follow), verifying container status (docker-compose ps), and manually inspecting database/Redis states proved invaluable for pinpointing root causes.
+
+11. Contributing
+Contributions are welcome! Please feel free to open issues or submit pull requests.
+
+12. License
+This project is open-source and available under the MIT License.
