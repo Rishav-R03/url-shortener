@@ -4,7 +4,7 @@ from sqlalchemy.orm import declarative_base
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, func
 from datetime import datetime
 import asyncio
-from app.config import settings
+from config import settings
 
 # Base class for declarative models
 Base = declarative_base()
